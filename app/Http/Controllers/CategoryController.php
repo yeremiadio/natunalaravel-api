@@ -16,8 +16,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $data = Category::with('products')->get();
-        // $data = Category::all();
+        // $data = Category::with('products')->get();
+        $data = Category::all();
         return $this->responseSuccess('List all categories', $data);
     }
 

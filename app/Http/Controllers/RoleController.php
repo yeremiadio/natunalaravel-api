@@ -15,9 +15,10 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $data = Role::with(['users' => function ($q) {
-            $q->select('role_id', 'name', 'email');
-        }])->get();
+        // $data = Role::with(['users' => function ($q) {
+        //     $q->select('role_id', 'name', 'email');
+        // }])->get();
+        $data = Role::all();
         return $this->responseSuccess('List all roles', $data);
     }
 
