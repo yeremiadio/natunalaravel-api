@@ -15,7 +15,10 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        $data = User::with(['role' => function ($q) {
+            $q->select('id', 'role_name');
+        }])->get();
+        return $this->responseSuccess('List all users', $data);
     }
 
     /**
@@ -51,7 +54,7 @@ class UserController extends Controller
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => bcrypt($input['password']),
-            'role' => 'user',
+            'role_id' => 2,
         ]);
 
         $data = [

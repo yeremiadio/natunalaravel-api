@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -27,15 +28,16 @@ Route::middleware(['api' => 'force-json'])->group(function () {
 
     Route::group(['middleware' => ['auth:sanctum']], function () {
 
-        Route::get('/users', function (Request $request) {
-            return $request->user();
-        });
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/category', [CategoryController::class, 'index']);
         Route::get('/roles', [RoleController::class, 'index']);
         Route::get('/products', [ProductController::class, 'index']);
 
         Route::group(['prefix' => 'admin', 'middleware' => ['admin']], function () {
+            Route::group(['prefix' => 'category'], function () {
+                Route::post('/create', [CategoryController::class, 'store']);
+            });
             Route::group(['prefix' => 'products'], function () {
-
                 Route::post('/create', [ProductController::class, 'store']);
             });
             Route::group(['prefix' => 'users'], function () {

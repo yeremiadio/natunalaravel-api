@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
         DB::table('users')->insert([
             'name' => 'admin',
             'email' => 'admin@xyz.com',
-            'role' => 'admin',
+            'role_id' => 1,
             'email_verified_at' => Carbon::now(),
             'remember_token' => Str::Random(50),
             'password' => Hash::make('password'),

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
-class ProductController extends Controller
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,10 +16,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $data = Product::with(['category' => function ($q) {
-            $q->select('id', 'category_name', 'category_slug');
-         }])->get();
-        return $this->responseSuccess('List all products', $data);
+        $data = Category::with('products')->get();
+        // $data = Category::all();
+        return $this->responseSuccess('List all categories', $data);
     }
 
     /**
@@ -42,10 +41,7 @@ class ProductController extends Controller
     {
         $input = $request->all();
         $validator = Validator::make($input, [
-            'title' => 'required|string|unique:products,title',
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'category_id' => 'required|exists:categories,id',
+            'category_name' => 'required|string|unique:categories,category_name',
 
         ]);
 
@@ -53,34 +49,25 @@ class ProductController extends Controller
             return $this->responseFailed('Error Validation', $validator->errors(), 400);
         }
 
-        if ($request->hasFile('image')) {
-            $input['image'] = rand() . '.' . request()->image->getClientOriginalExtension();
-
-            request()->image->move(public_path('assets/images/products/'), $input['image']);
-        }
-
-        $product = Product::create([
-            'title' => $input['title'],
-            'description' => $input['description'],
-            'image' => $input['image'],
-            'slug' =>  Str::slug($input['title']),
-            'category_id' =>  $input['category_id'],
+        $category = Category::create([
+            'category_name' => $input['category_name'],
+            'category_slug' => Str::slug($input['category_name']),
         ]);
 
         $data = [
-            'product' => $product,
+            'category' => $category,
         ];
 
-        return $this->responseSuccess('Product created successfully', $data, 201);
+        return $this->responseSuccess('Category created successfully', $data, 201);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Product  $product
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function show(Product $product)
+    public function show(Category $category)
     {
         //
     }
@@ -88,10 +75,10 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Product  $product
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function edit(Product $product)
+    public function edit(Category $category)
     {
         //
     }
@@ -100,10 +87,10 @@ class ProductController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Product  $product
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Category $category)
     {
         //
     }
@@ -111,10 +98,10 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Product  $product
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Product $product)
+    public function destroy(Category $category)
     {
         //
     }
