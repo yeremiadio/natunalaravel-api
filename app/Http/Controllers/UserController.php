@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -42,7 +43,7 @@ class UserController extends Controller
         $input = $request->all();
         $validator = Validator::make($input, [
             'name' => 'required|string',
-            'email' => 'required|string|unique:users,email',
+            'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|between:8,255',
         ]);
 
@@ -70,9 +71,15 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show($id)
     {
-        //
+        $user = User::where('id', $id)->first();
+        if (!$user) return $this->responseFailed('Data not found', '', 404);
+
+        $data = User::where('id', $id)->with(['role' => function ($q) {
+            $q->select('id', 'role_name');
+        }])->first();
+        return $this->responseSuccess('User detail', $data);
     }
 
     /**
@@ -93,9 +100,32 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $user)
+    public function update($id, Request $request)
     {
-        //
+        $user = User::where('id', $id)->first();
+        if (!$user) return $this->responseFailed('Data not found', '', 404);
+
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'name' => 'required|string',
+            'email' => 'required|string|email',
+            'password' => 'required|string|between:8,255',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseFailed('Error validation', $validator->errors(), 400);
+        }
+
+        $user->update([
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'password' => bcrypt($input['password'])
+        ]);
+
+
+        $data = User::find($id);
+
+        return $this->responseSuccess('User updated successfully', $data, 200);
     }
 
     /**
@@ -104,8 +134,13 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user)
+    public function destroy($id)
     {
-        //
+        $user = User::where('id', $id)->first();
+        if (!$user) return $this->responseFailed('User not found', '', 404);
+
+        $user->delete();
+
+        return $this->responseSuccess('User deleted successfully');
     }
 }

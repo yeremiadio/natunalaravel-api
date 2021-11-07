@@ -42,8 +42,7 @@ class RoleController extends Controller
     {
         $input = $request->all();
         $validator = Validator::make($input, [
-            'role_name' => 'required|string',
-
+            'role_name' => 'required|string|unique:roles,role_name',
         ]);
 
         if ($validator->fails()) {
@@ -90,9 +89,25 @@ class RoleController extends Controller
      * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Role $role)
+    public function update($id, Request $request)
     {
-        //
+        $role = Role::where('id', $id)->first();
+        if (!$role) return $this->responseFailed('Data not found', '', 404);
+
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'role_name' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseFailed('Error validation', $validator->errors(), 400);
+        }
+
+        $role->update($input);
+
+        $data = Role::find($id);
+
+        return $this->responseSuccess('Role updated successfully', $data, 200);
     }
 
     /**
@@ -101,8 +116,13 @@ class RoleController extends Controller
      * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Role $role)
+    public function destroy($id)
     {
-        //
+        $user = User::where('id' ,$id)->first();
+        if (!$user) return $this->responseFailed('Role not found', '', 404);
+
+        $user->delete();
+
+        return $this->responseSuccess('Role deleted successfully');
     }
 }

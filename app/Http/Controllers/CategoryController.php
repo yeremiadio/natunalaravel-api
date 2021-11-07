@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -67,9 +68,13 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function show(Category $category)
+    public function show($slug)
     {
-        //
+        $category = Category::where('category_slug', $slug)->first();
+        if (!$category) return $this->responseFailed('Data not found', '', 404);
+
+        $data = Category::where('category_slug', $slug)->with('products')->first();
+        return $this->responseSuccess('List Specific Product Category', $data, 200);
     }
 
     /**
@@ -90,9 +95,28 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
-        //
+        $category = Category::where('id', $id)->first();
+        if (!$category) return $this->responseFailed('Data not found', '', 404);
+
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'category_name' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseFailed('Error validation', $validator->errors(), 400);
+        }
+
+        $category->update([
+            'category_name' => $input['category_name'],
+            'category_slug' => Str::slug($input['category_name'])
+        ]);
+
+        $data = Category::find($id);
+
+        return $this->responseSuccess('Category updated successfully', $data, 200);
     }
 
     /**
@@ -101,8 +125,13 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
-        //
+        $category = Category::where('id' ,$id)->first();
+        if (!$category) return $this->responseFailed('Category not found', '', 404);
+
+        $category->delete();
+
+        return $this->responseSuccess('Category deleted successfully');
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -18,7 +20,7 @@ class ProductController extends Controller
     {
         $data = Product::with(['category' => function ($q) {
             $q->select('id', 'category_name', 'category_slug');
-         }])->get();
+        }])->get();
         return $this->responseSuccess('List all products', $data);
     }
 
@@ -80,9 +82,15 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function show(Product $product)
+    public function show($slug)
     {
-        //
+        $product = Product::where('slug', $slug)->first();
+        if (!$product) return $this->responseFailed('Data not found', '', 404);
+
+        $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
+            $q->select('id', 'category_name', 'category_slug');
+        }])->first();
+        return $this->responseSuccess('Product detail', $data);
     }
 
     /**
@@ -103,9 +111,44 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $slug)
     {
-        //
+        $product = Product::where('slug', $slug)->with('category')->first();
+        if (!$product) return $this->responseFailed('Data not found', '', 404);
+
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'title' => 'required|string|unique:products,title',
+            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseFailed('Error Validation', $validator->errors(), 400);
+        }
+
+        $oldFile = $product->image;
+        if ($request->hasFile('image')) {
+            File::delete('assets/images/products/' . $oldFile);
+            $input['image'] = rand() . '.' . request()->image->getClientOriginalExtension();
+            request()->image->move(public_path('assets/images/products/'), $input['image']);
+        } else {
+            $input['image'] = $oldFile;
+        }
+        $product->update([
+            'title' => $input['title'],
+            'description' => $input['description'],
+            'image' => $input['image'],
+            'slug' =>  Str::slug($input['title']),
+            'category_id' =>  $input['category_id'],
+        ]);
+
+        $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
+            $q->select('id', 'category_name', 'category_slug');
+        }])->first();
+
+        return $this->responseSuccess('Product updated successfully', $data, 200);
     }
 
     /**
@@ -114,8 +157,17 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Product $product)
+    public function destroy($id)
     {
-        //
+        $product = Product::where('id', $id)->first();
+        if (!$product) return $this->responseFailed('Data not found', '', 404);
+
+        if ($product->image) {
+            File::delete('assets/images/products/' . $product->image);
+        }
+
+        $product->delete();
+
+        return $this->responseSuccess('Product deleted successfully');
     }
 }

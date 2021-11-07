@@ -27,6 +27,20 @@ class DatabaseSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
+        DB::table('categories')->insert([
+            'category_name' => 'Category Test',
+            'category_slug' => 'category-test',
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now()
+        ]);
+        DB::table('products')->insert([
+            'title' => 'Example title',
+            'description' => 'Example description',
+            'category_id' => 1,
+            'slug' => 'example-title',
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now()
+        ]);
         DB::table('users')->insert([
             'name' => 'admin',
             'email' => 'admin@xyz.com',
