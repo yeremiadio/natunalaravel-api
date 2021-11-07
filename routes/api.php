@@ -31,10 +31,11 @@ Route::middleware(['api' => 'force-json'])->group(function () {
             return $request->user();
         });
         Route::get('/roles', [RoleController::class, 'index']);
+        Route::get('/products', [ProductController::class, 'index']);
 
         Route::group(['prefix' => 'admin', 'middleware' => ['admin']], function () {
             Route::group(['prefix' => 'products'], function () {
-                Route::post('/', [ProductController::class, 'index']);
+
                 Route::post('/create', [ProductController::class, 'store']);
             });
             Route::group(['prefix' => 'users'], function () {

@@ -16,7 +16,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        $data = Product::all();
+        return $this->responseSuccess('List all products', $data);
     }
 
     /**
@@ -39,7 +40,7 @@ class ProductController extends Controller
     {
         $input = $request->all();
         $validator = Validator::make($input, [
-            'title' => 'required|string',
+            'title' => 'required|string|unique:products,title',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
