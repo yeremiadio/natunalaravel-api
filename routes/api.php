@@ -25,12 +25,13 @@ Route::middleware(['api' => 'force-json'])->group(function () {
     //login user
     Route::post('/login', [AuthenticationController::class, 'login']);
 
-    //Get users
     Route::group(['middleware' => ['auth:sanctum']], function () {
+
         Route::get('/users', function (Request $request) {
             return $request->user();
         });
         Route::get('/roles', [RoleController::class, 'index']);
+
         Route::group(['prefix' => 'admin', 'middleware' => ['admin']], function () {
             Route::group(['prefix' => 'products'], function () {
                 Route::post('/', [ProductController::class, 'index']);
