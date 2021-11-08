@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
@@ -21,11 +22,9 @@ class ProductController extends Controller
         $product = Product::latest()->with(['category' => function ($q) {
             $q->select('id', 'category_name', 'category_slug');
         }])->filter(request(['search', 'sort', 'min_price', 'max_price', 'category']))->paginate(request('limit'));
-        $data = [
-            'products' => $product,
+        if (!$product) return $this->responseFailed('Data not found', '', 404);
 
-        ];
-        return $this->responseSuccess('List Products', $data);
+        return $this->responseSuccess('List Products', $product, 200);
     }
 
     /**
