@@ -22,7 +22,7 @@ class ProductController extends Controller
     {
         $product = Product::latest()->with(['category' => function ($q) {
             $q->select('id', 'category_name', 'category_slug');
-        }, 'product_images'])->filter(request(['search', 'sort', 'min_price', 'max_price', 'category']))->paginate(request('limit'));
+        }, 'product_images'])->filter(request(['search', 'sort', 'orderby', 'min_price', 'max_price', 'category']))->paginate(request('limit'));
         if (!$product) return $this->responseFailed('Data not found', '', 404);
 
         return $this->responseSuccess('List Products', $product, 200);
@@ -92,7 +92,6 @@ class ProductController extends Controller
             ];
 
             return $this->responseSuccess('Product created successfully', $data, 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->responseFailed('Product failed to create');

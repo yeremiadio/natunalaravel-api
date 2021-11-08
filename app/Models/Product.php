@@ -27,6 +27,10 @@ class Product extends Model
             return $query->reorder('price', $sort);
         });
 
+        $query->when($filters['orderby'] ?? false, function ($query, $orderby) {
+            return $query->orderBy($orderby ?? 'price', 'desc');
+        });
+
         $query->when($filters['min_price'] ?? false, function ($query, $min_price) {
             $minFilter = (int) $min_price;
             $query->where(function ($query) use ($minFilter) {

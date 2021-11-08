@@ -45,15 +45,15 @@ class DatabaseSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
-        DB::table('users')->insert([
-            'name' => 'user',
-            'email' => 'user@xyz.com',
-            'role_id' => 2,
-            'email_verified_at' => Carbon::now(),
-            'remember_token' => Str::Random(50),
-            'password' => Hash::make('password'),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
-        ]);
+        // DB::table('users')->insert([
+        //     'name' => 'user',
+        //     'email' => 'user@xyz.com',
+        //     'role_id' => 2,
+        //     'email_verified_at' => Carbon::now(),
+        //     'remember_token' => Str::Random(50),
+        //     'password' => Hash::make('password'),
+        //     'created_at' => Carbon::now(),
+        //     'updated_at' => Carbon::now()
+        // ]);
     }
 }

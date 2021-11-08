@@ -19,7 +19,6 @@ class AuthenticationController extends Controller
             'name' => 'required|string',
             'email' => 'required|string|unique:users,email',
             'password' => 'required|string|confirmed',
-            'role' => 'required|string|exists:roles,role_name'
         ]);
 
         if ($validator->fails()) {
@@ -30,7 +29,7 @@ class AuthenticationController extends Controller
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => bcrypt($input['password']),
-            'role' => $input['role'],
+            'role_id' => 2,
         ]);
         $token = $user->createToken('token')->plainTextToken;
 
