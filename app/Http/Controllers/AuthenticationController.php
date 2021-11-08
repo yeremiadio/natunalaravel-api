@@ -35,9 +35,7 @@ class AuthenticationController extends Controller
         $token = $user->createToken('token')->plainTextToken;
 
         $data = [
-            'user' => $user->with(['role' => function ($q) {
-                $q->select('id', 'role_name');
-            }])->first(),
+            'user' => $user,
             'token' => $token
         ];
 
@@ -63,9 +61,7 @@ class AuthenticationController extends Controller
         $token = $user->createToken('token')->plainTextToken;
 
         $data = [
-            'user' => $user->with(['role' => function ($q) {
-                $q->select('id', 'role_name');
-            }])->first(),
+            'user' => $user,
             'token' => $token
         ];
 
