@@ -45,48 +45,58 @@ class ProductController extends Controller
             'product_images' => 'required|array|between:1,5',
             'product_images.*.image_name' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'category_id' => 'required|exists:categories,id',
-
         ]);
 
         if ($validator->fails()) {
             return $this->responseFailed('Error Validation', $validator->errors(), 400);
         }
 
-        if ($request->hasFile('thumbnail')) {
-            $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+        try {
+            DB::beginTransaction();
+            $input['thumbnail'] = null;
+            if ($request->hasFile('thumbnail')) {
+                $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
 
-            request()->thumbnail->move(public_path('assets/images/thumbnail/products/'), $input['thumbnail']);
-        }
-
-        $product = Product::create([
-            'title' => $input['title'],
-            'description' => $input['description'],
-            'thumbnail' => $input['thumbnail'] ?? null,
-            'slug' =>  Str::slug($input['title']),
-            'price' => $input['price'],
-            'category_id' =>  $input['category_id'],
-        ]);
-
-        foreach ($input['product_images'] as $key => $imageValues) {
-            if ($request->hasFile('product_images.' . $key . '.image_name')) {
-                $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
-
-                $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+                request()->thumbnail->move(public_path('assets/images/thumbnail/products/'), $input['thumbnail']);
             }
 
-            $product_image = ProductImage::create([
-                'product_id' => $product->id,
-                'image_name' => $imageValues['image_name'] ?? null
+            $product = Product::create([
+                'title' => $input['title'],
+                'description' => $input['description'],
+                'thumbnail' => $input['thumbnail'],
+                'slug' =>  Str::slug($input['title']),
+                'price' => $input['price'],
+                'category_id' =>  $input['category_id'],
             ]);
+
+            foreach ($input['product_images'] as $key => $imageValues) {
+                $imageValues['image_name'] = null;
+                if ($request->hasFile('product_images.' . $key . '.image_name')) {
+                    $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
+
+                    $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+                }
+
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_name' => $imageValues['image_name']
+                ]);
+            }
+
+            DB::commit();
+
+            $data = [
+                'product' => Product::where('slug', $product->slug)->with(['category' => function ($q) {
+                    $q->select('id', 'category_name', 'category_slug');
+                }, 'product_images'])->first(),
+            ];
+
+            return $this->responseSuccess('Product created successfully', $data, 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->responseFailed('Product failed to create');
         }
-
-        $data = [
-            'product' => Product::where('slug', $product->slug)->with(['category' => function ($q) {
-                $q->select('id', 'category_name', 'category_slug');
-            }, 'product_images'])->first(),
-        ];
-
-        return $this->responseSuccess('Product created successfully', $data, 201);
     }
 
     /**
@@ -102,7 +112,7 @@ class ProductController extends Controller
 
         $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
             $q->select('id', 'category_name', 'category_slug');
-        }])->first();
+        }, 'product_images'])->first();
         return $this->responseSuccess('Product detail', $data);
     }
 
@@ -131,9 +141,13 @@ class ProductController extends Controller
 
         $input = $request->all();
         $validator = Validator::make($input, [
-            'title' => 'required|string|unique:products,title',
+            'title' => 'required|string',
             'description' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'price' => 'required|numeric',
+            'product_images' => 'required|array|between:1,5',
+            'product_images.*.id' => 'required|numeric',
+            'product_images.*.image_name' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'category_id' => 'required|exists:categories,id',
         ]);
 
@@ -141,29 +155,64 @@ class ProductController extends Controller
             return $this->responseFailed('Error Validation', $validator->errors(), 400);
         }
 
-        $oldFile = $product->thumbnail;
-        if ($request->hasFile('thumbnail')) {
-            File::delete('assets/images/thumbnail/products/' . $oldFile);
-            $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
-            request()->thumbnail->move(public_path('assets/images/thubmnail/products/'), $input['thumbnail']);
-        } else {
-            $input['thumbnail'] = $oldFile;
+        try {
+            DB::beginTransaction();
+            $oldFile = $product->thumbnail;
+            if ($request->hasFile('thumbnail')) {
+                File::delete('assets/images/thumbnail/products/' . $oldFile);
+                $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+                request()->thumbnail->move(public_path('assets/images/thubmnail/products/'), $input['thumbnail']);
+            } else {
+                $input['thumbnail'] = $oldFile;
+            }
+            $product->update([
+                'title' => $input['title'],
+                'description' => $input['description'],
+                'thumbnail' => $input['thumbnail'],
+                'slug' =>  Str::slug($input['title']),
+                'category_id' =>  $input['category_id'],
+            ]);
+
+            foreach ($input['product_images'] as $key => $imageValues) {
+                if ($imageValues['id'] == -1) {
+                    $imageValues['image_name'] = null;
+                    if ($request->hasFile('product_images.' . $key . '.image_name')) {
+                        $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
+
+                        $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+                    }
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_name' => $imageValues['image_name']
+                    ]);
+                } else {
+                    $oldFile = $product->product_images[$key]->image_name;
+                    if ($request->hasFile('product_images.' . $key . '.image_name')) {
+                        $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
+
+                        $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+                    } else {
+                        $imageValues['image_name'] = $oldFile;
+                    }
+
+                    ProductImage::where('id', $imageValues['id'])
+                        ->update([
+                            'image_name' => $imageValues['image_name']
+                        ]);
+                }
+            }
+
+            DB::commit();
+
+            $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
+                $q->select('id', 'category_name', 'category_slug');
+            }, 'product_images'])->first();
+
+            return $this->responseSuccess('Product updated successfully', $data, 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->responseFailed('Product update failed');
         }
-        $product->update([
-            'title' => $input['title'],
-            'description' => $input['description'],
-            'thumbnail' => $input['thumbnail'],
-            'slug' =>  Str::slug($input['title']),
-            'category_id' =>  $input['category_id'],
-        ]);
-
-        $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
-            $q->select('id', 'category_name', 'category_slug');
-        }, 'images' => function ($q) {
-            $q->select('id', 'image_name');
-        }])->first();
-
-        return $this->responseSuccess('Product updated successfully', $data, 200);
     }
 
     /**
@@ -180,6 +229,13 @@ class ProductController extends Controller
         if ($product->thumbnail) {
             File::delete('assets/images/thumbnail/products/' . $product->thumbnail);
         }
+
+        foreach ($product->product_images as $productValue) {
+            if ($productValue->image_name) {
+                File::delete('assets/images/products/' . $productValue->image_name);
+            }
+        }
+
 
         $product->delete();
 

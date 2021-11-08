@@ -53,7 +53,7 @@ Route::middleware(['api' => 'force-json'])->group(function () {
             });
             Route::group(['prefix' => 'products'], function () {
                 Route::post('/create', [ProductController::class, 'store']);
-                Route::put('/{id}/update', [ProductController::class, 'update']);
+                Route::put('/{slug}/update', [ProductController::class, 'update']);
                 Route::delete('/{id}/delete', [ProductController::class, 'destroy']);
             });
             Route::group(['prefix' => 'users'], function () {
