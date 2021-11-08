@@ -18,9 +18,13 @@ class ProductController extends Controller
      */
     public function index()
     {
-       $data = Product::latest()->with(['category' => function ($q) {
+        $product = Product::latest()->with(['category' => function ($q) {
             $q->select('id', 'category_name', 'category_slug');
-        }])->filter(request(['search', 'sort', 'category']))->paginate(6);
+        }])->filter(request(['search', 'sort', 'min_price', 'max_price', 'category']))->paginate(request('limit'));
+        $data = [
+            'products' => $product,
+
+        ];
         return $this->responseSuccess('List Products', $data);
     }
 

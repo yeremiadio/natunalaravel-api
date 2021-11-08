@@ -18,8 +18,26 @@ class Product extends Model
                 ->orWhere('description', 'like', '%' . $search . '%');
         });
 
+        $query->when(request('limit') ?? false, function ($query, $limit) {
+            return $query->limit($limit);
+        });
+
         $query->when($filters['sort'] ?? false, function ($query, $sort) {
             return $query->reorder('price', $sort);
+        });
+
+        $query->when($filters['min_price'] ?? false, function ($query, $min_price) {
+            $minFilter = (int) $min_price;
+            $query->where(function ($query) use ($minFilter) {
+                $query->where('price', '>=', $minFilter);
+            });
+        });
+
+        $query->when($filters['max_price'] ?? false, function ($query, $max_price) {
+            $maxFilter = (int) $max_price;
+            $query->where(function ($query) use ($maxFilter) {
+                $query->where('price', '<=', $maxFilter);
+            });
         });
 
         $query->when($filters['category'] ?? false, function ($query, $category) {
