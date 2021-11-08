@@ -10,7 +10,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'category_id', 'description', 'slug', 'image', 'price'];
+    protected $fillable = ['title', 'category_id', 'description', 'slug', 'thumbnail', 'price'];
 
     public function scopeFilter($query, array $filters)
     {
@@ -51,5 +51,10 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function product_images()
+    {
+        return $this->hasMany(ProductImage::class);
     }
 }
