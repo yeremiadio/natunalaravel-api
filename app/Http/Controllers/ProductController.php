@@ -18,20 +18,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $data = Product::with(['category' => function ($q) {
+       $data = Product::latest()->with(['category' => function ($q) {
             $q->select('id', 'category_name', 'category_slug');
-        }])->get();
-        return $this->responseSuccess('List all products', $data);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        }])->filter(request(['search', 'sort', 'category']))->paginate(6);
+        return $this->responseSuccess('List Products', $data);
     }
 
     /**
@@ -47,6 +37,7 @@ class ProductController extends Controller
             'title' => 'required|string|unique:products,title',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'price' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
 
         ]);
@@ -64,8 +55,9 @@ class ProductController extends Controller
         $product = Product::create([
             'title' => $input['title'],
             'description' => $input['description'],
-            'image' => $input['image'],
+            'image' => $input['image'] ?? null,
             'slug' =>  Str::slug($input['title']),
+            'price' => $input['price'],
             'category_id' =>  $input['category_id'],
         ]);
 
