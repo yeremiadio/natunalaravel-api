@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Telegram\Bot\Api;
 
 class CategoryController extends Controller
 {
@@ -53,6 +54,15 @@ class CategoryController extends Controller
         $category = Category::create([
             'category_name' => $input['category_name'],
             'category_slug' => Str::slug($input['category_name']),
+        ]);
+
+        $telegramMessage = "Kategori baru berhasil ditambahkan, nama kategori: {$input['category_name']}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
         ]);
 
         $data = [
@@ -114,6 +124,15 @@ class CategoryController extends Controller
             'category_slug' => Str::slug($input['category_name'])
         ]);
 
+        $telegramMessage = "Kategori baru berhasil diubah, nama kategori: {$input['category_name']}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
+
         $data = Category::find($id);
 
         return $this->responseSuccess('Category updated successfully', $data, 200);
@@ -129,6 +148,15 @@ class CategoryController extends Controller
     {
         $category = Category::where('id' ,$id)->first();
         if (!$category) return $this->responseFailed('Category not found', '', 404);
+
+        $telegramMessage = "Kategori baru berhasil dihapus, nama kategori: {$category->category_name}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
 
         $category->delete();
 

@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Telegram\Bot\Api;
 
 class UserController extends Controller
 {
@@ -56,6 +57,15 @@ class UserController extends Controller
             'email' => $input['email'],
             'password' => bcrypt($input['password']),
             'role_id' => 2,
+        ]);
+
+        $telegramMessage = "Pengguna baru berhasil ditambahkan, nama pengguna: {$input['name']}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
         ]);
 
         $data = [
@@ -122,6 +132,14 @@ class UserController extends Controller
             'password' => bcrypt($input['password'])
         ]);
 
+        $telegramMessage = "Pengguna berhasil diubah, nama pengguna: {$input['name']}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
 
         $data = User::find($id);
 
@@ -138,6 +156,15 @@ class UserController extends Controller
     {
         $user = User::where('id', $id)->first();
         if (!$user) return $this->responseFailed('User not found', '', 404);
+
+        $telegramMessage = "Pengguna berhasil dihapus, nama pengguna: {$user->name}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
 
         $user->delete();
 
