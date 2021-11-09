@@ -48,8 +48,8 @@ class AuthenticationController extends Controller
     public function login(Request $request)
     {
         $input = $request->validate([
-            'email' => 'required|string',
-            'password' => 'required|string'
+            'email' => 'required|string|email',
+            'password' => 'required|string|between:8,255'
         ]);
 
         if (!Auth::attempt($input)) {
