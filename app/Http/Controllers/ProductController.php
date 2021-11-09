@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Telegram\Bot\Api;
 
 class ProductController extends Controller
 {
@@ -82,6 +83,15 @@ class ProductController extends Controller
                     'image_name' => $imageValues['image_name']
                 ]);
             }
+
+            $telegramMessage = "Produk baru berhasil ditambahkan, nama produk: {$input['title']}";
+
+            $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+            $telegram->sendMessage([
+                'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+                'text' => $telegramMessage
+            ]);
 
             DB::commit();
 
@@ -201,6 +211,15 @@ class ProductController extends Controller
                 }
             }
 
+            $telegramMessage = "Produk baru berhasil diubah, nama produk: {$input['title']}";
+
+            $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+            $telegram->sendMessage([
+                'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+                'text' => $telegramMessage
+            ]);
+
             DB::commit();
 
             $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
@@ -235,6 +254,14 @@ class ProductController extends Controller
             }
         }
 
+        $telegramMessage = "Produk berhasil dihapus, nama produk: {$product->title}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
 
         $product->delete();
 

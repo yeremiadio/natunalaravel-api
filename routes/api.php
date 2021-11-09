@@ -8,7 +8,6 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -66,8 +65,8 @@ Route::middleware(['api' => 'force-json'])->group(function () {
                 Route::delete('/{id}/delete', [RoleController::class, 'destroy']);
             });
         });
-    });
 
-    //Logout
-    Route::post('/logout', [AuthenticationController::class, 'logout']);
+        //Logout
+        Route::post('/logout', [AuthenticationController::class, 'logout']);
+    });
 });

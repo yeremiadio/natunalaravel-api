@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Telegram\Bot\Api;
 
 class AuthenticationController extends Controller
 {
@@ -33,16 +34,21 @@ class AuthenticationController extends Controller
         ]);
         $token = $user->createToken('token')->plainTextToken;
 
+        $telegramMessage = "Pengguna baru yang terdaftar pada web, nama pengguna: {$input['name']}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
+
         $data = [
             'user' => $user,
-            'token' => $token
+            'token' => $token,
         ];
 
         return $this->responseSuccess('Registration Successful', $data, 201);
-
-        // return $this->success([
-        //     'token' => $user->createToken('tokens')->plainTextToken
-        // ]);
     }
     //use this method to login users
     public function login(Request $request)
@@ -64,7 +70,14 @@ class AuthenticationController extends Controller
             'token' => $token
         ];
 
-        $user->update(['last_seen' => Carbon::now()]);
+        $telegramMessage = "Pengguna sedang login di web, email: {$input['email']}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
 
         return $this->responseSuccess('Login Successful', $data, 200);
     }
@@ -72,6 +85,17 @@ class AuthenticationController extends Controller
     // this method signs out users by removing tokens
     public function logout()
     {
+        $user = auth()->user()->email;
+
+        $telegramMessage = "Pengguna telah logout dari web, email: {$user}";
+
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+
+        $telegram->sendMessage([
+            'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+            'text' => $telegramMessage
+        ]);
+
         auth()->user()->tokens()->delete();
 
         return response()->json([
