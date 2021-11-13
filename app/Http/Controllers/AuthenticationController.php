@@ -79,6 +79,8 @@ class AuthenticationController extends Controller
             'text' => $telegramMessage
         ]);
 
+        auth()->logoutOtherDevices($request->password);
+
         return $this->responseSuccess('Login Successful', $data, 200);
     }
 

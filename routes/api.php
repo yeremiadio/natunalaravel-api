@@ -49,11 +49,13 @@ Route::middleware(['api' => 'force-json'])->group(function () {
                 Route::post('/create', [CategoryController::class, 'store']);
                 Route::put('/{slug}/update', [CategoryController::class, 'update']);
                 Route::delete('/{id}/delete', [CategoryController::class, 'destroy']);
+
             });
             Route::group(['prefix' => 'products'], function () {
                 Route::post('/create', [ProductController::class, 'store']);
                 Route::put('/{slug}/update', [ProductController::class, 'update']);
                 Route::delete('/{id}/delete', [ProductController::class, 'destroy']);
+                Route::delete('/images/{id}/delete', [ProductController::class, 'deleteProductImage']);
             });
             Route::group(['prefix' => 'users'], function () {
                 Route::post('/create', [UserController::class, 'store']);

@@ -35,6 +35,9 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
+
+
     public function store(Request $request)
     {
         $input = $request->all();
@@ -44,8 +47,8 @@ class ProductController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
             'product_images' => 'required|array|between:1,5',
-            'product_images.*.image_name' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'category_id' => 'required|exists:categories,id',
+            'product_images.*.image_name' => 'nullable|image',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -84,6 +87,8 @@ class ProductController extends Controller
                 ]);
             }
 
+            DB::commit();
+
             $telegramMessage = "Produk baru berhasil ditambahkan, nama produk: {$input['title']}";
 
             $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
@@ -92,8 +97,6 @@ class ProductController extends Controller
                 'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
                 'text' => $telegramMessage
             ]);
-
-            DB::commit();
 
             $data = [
                 'product' => Product::where('slug', $product->slug)->with(['category' => function ($q) {
@@ -143,7 +146,7 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $slug)
+    public function updateAlt(Request $request, $slug)
     {
         $product = Product::where('slug', $slug)->with('category')->first();
         if (!$product) return $this->responseFailed('Data not found', '', 404);
@@ -156,7 +159,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'product_images' => 'required|array|between:1,5',
             'product_images.*.id' => 'required|numeric',
-            'product_images.*.image_name' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'product_images.*.image_name' => 'nullable|image',
             'category_id' => 'required|exists:categories,id',
         ]);
 
@@ -233,6 +236,72 @@ class ProductController extends Controller
         }
     }
 
+    public function update(Request $request, $slug)
+    {
+        $product = Product::where('slug', $slug)->first();
+        if (!$product) return $this->responseFailed('Data not found', '', 404);
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'title' => 'required|string',
+            'description' => 'required|string',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'price' => 'required|numeric',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseFailed('Error Validation', $validator->errors(), 400);
+        }
+        try {
+            DB::beginTransaction();
+            $oldFile = $product->thumbnail;
+            if ($request->hasFile('thumbnail')) {
+                File::delete('assets/images/thumbnail/products/' . $oldFile);
+                $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+                request()->thumbnail->move(public_path('assets/images/thubmnail/products/'), $input['thumbnail']);
+            } else {
+                $input['thumbnail'] = $oldFile;
+            }
+            $product->update([
+                'title' => $input['title'],
+                'description' => $input['description'],
+                'thumbnail' => $input['thumbnail'],
+                'price' => $input['price'],
+                'slug' =>  Str::slug($input['title']),
+                'category_id' =>  $input['category_id'],
+            ]);
+            if ($request->hasFile('product_images')) {
+                $images = $request->file('product_images');
+                foreach ($images as $image) {
+                    $imageName = rand() . '.' . $image->getClientOriginalExtension();
+                    $request['product_id'] = $product->id;
+                    $request['image_name'] = $imageName;
+                    $image->move(public_path('assets/images/products/'), $imageName);
+                    ProductImage::create($request->all());
+                }
+            }
+            DB::commit();
+            $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
+                $q->select('id', 'category_name', 'category_slug');
+            }, 'product_images'])->first();
+
+            return $this->responseSuccess('Product updated successfully', $data, 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->responseFailed('Product update failed');
+        }
+    }
+
+    public function deleteProductImage($id)
+    {
+        $images = ProductImage::findOrFail($id);
+        if (File::exists("assets/images/products/" . $images->image)) {
+            File::delete("assets/images/products/" . $images->image);
+        }
+
+        ProductImage::find($id)->delete();
+        return $this->responseSuccess('Product image deleted successfully');
+    }
     /**
      * Remove the specified resource from storage.
      *

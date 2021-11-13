@@ -29,6 +29,12 @@ class DatabaseSeeder extends Seeder
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
+        DB::table('categories')->insert([
+            'category_name' => 'Test',
+            'category_slug' => 'test',
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now()
+        ]);
         Category::factory()
             ->count(5)
             ->create();
