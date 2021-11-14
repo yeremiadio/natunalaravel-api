@@ -46,9 +46,6 @@ class ProductController extends Controller
             'description' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
-            'product_images' => 'required|array|between:1,5',
-            'product_images.*.image_name' => 'nullable|image',
-            'category_id' => 'nullable|exists:categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -73,18 +70,15 @@ class ProductController extends Controller
                 'category_id' =>  $input['category_id'],
             ]);
 
-            foreach ($input['product_images'] as $key => $imageValues) {
-                $imageValues['image_name'] = null;
-                if ($request->hasFile('product_images.' . $key . '.image_name')) {
-                    $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
-
-                    $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+            if ($request->hasFile('product_images')) {
+                $images = $request->file('product_images');
+                foreach ($images as $image) {
+                    $imageName = rand() . '.' . $image->getClientOriginalExtension();
+                    $request['product_id'] = $product->id;
+                    $request['image_name'] = $imageName;
+                    $image->move(public_path('assets/images/products/'), $imageName);
+                    ProductImage::create($request->all());
                 }
-
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image_name' => $imageValues['image_name']
-                ]);
             }
 
             DB::commit();
@@ -244,7 +238,6 @@ class ProductController extends Controller
         $validator = Validator::make($input, [
             'title' => 'required|string',
             'description' => 'required|string',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
         ]);
@@ -256,9 +249,11 @@ class ProductController extends Controller
             DB::beginTransaction();
             $oldFile = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
-                File::delete('assets/images/thumbnail/products/' . $oldFile);
-                $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
-                request()->thumbnail->move(public_path('assets/images/thubmnail/products/'), $input['thumbnail']);
+                // File::delete('assets/images/thumbnail/products/' . $oldFile);
+                $thumbnail = $request->file('thumbnail');
+                $thumbnailName = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+                $input['thumbnail'] = $thumbnailName;
+                $thumbnail->move(public_path('assets/images/thumbnail/products/'), $thumbnailName);
             } else {
                 $input['thumbnail'] = $oldFile;
             }
