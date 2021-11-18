@@ -43,9 +43,11 @@ class ProductController extends Controller
         $input = $request->all();
         $validator = Validator::make($input, [
             'title' => 'required|string|unique:products,title',
-            'description' => 'required|string',
+            'description' => 'required|min:15|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
+            'product_images' => 'nullable|image',
+            'category_id' => 'required|exists:categories,id'
         ]);
 
         if ($validator->fails()) {
@@ -148,7 +150,7 @@ class ProductController extends Controller
         $input = $request->all();
         $validator = Validator::make($input, [
             'title' => 'required|string',
-            'description' => 'required|string',
+            'description' => 'required|min:15|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
             'product_images' => 'required|array|between:1,5',
