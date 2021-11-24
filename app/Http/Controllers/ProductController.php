@@ -153,6 +153,7 @@ class ProductController extends Controller
             'description' => 'required|min:15|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
+            'quantity' => 'required|min:1|numeric',
             'product_images' => 'required|array|between:1,5',
             'product_images.*.id' => 'required|numeric',
             'product_images.*.image_name' => 'nullable|image',
@@ -178,6 +179,7 @@ class ProductController extends Controller
                 'description' => $input['description'],
                 'thumbnail' => $input['thumbnail'],
                 'slug' =>  Str::slug($input['title']),
+                'quantity' => $input['quantity'],
                 'category_id' =>  $input['category_id'],
             ]);
 
@@ -241,6 +243,7 @@ class ProductController extends Controller
             'title' => 'required|string',
             'description' => 'required|string',
             'price' => 'required|numeric',
+            'thumbnail' => 'nullable',
             'category_id' => 'required|exists:categories,id',
         ]);
 

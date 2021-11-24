@@ -22,6 +22,7 @@ class ProductFactory extends Factory
             'category_id' => $this->faker->numberBetween(2, 6),
             'slug' => Str::slug($title),
             'price' => $this->faker->numberBetween(1000, 10000),
+            'quantity' => $this->faker->numberBetween(1, 5),
             'thumbnail' => $this->faker->imageUrl(640, 480, 'foods', true),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()

@@ -40,7 +40,6 @@ Route::middleware(['api' => 'force-json'])->group(function () {
         Route::group(['prefix' => 'users'], function () {
             Route::get('/', [UserController::class, 'index']);
             Route::get('/{id}', [UserController::class, 'show']);
-            Route::put('/{id}/update', [UserController::class, 'update']);
         });
         Route::get('/roles', [RoleController::class, 'index']);
 
@@ -49,7 +48,6 @@ Route::middleware(['api' => 'force-json'])->group(function () {
                 Route::post('/create', [CategoryController::class, 'store']);
                 Route::put('/{slug}/update', [CategoryController::class, 'update']);
                 Route::delete('/{id}/delete', [CategoryController::class, 'destroy']);
-
             });
             Route::group(['prefix' => 'products'], function () {
                 Route::post('/create', [ProductController::class, 'store']);
@@ -59,6 +57,7 @@ Route::middleware(['api' => 'force-json'])->group(function () {
             });
             Route::group(['prefix' => 'users'], function () {
                 Route::post('/create', [UserController::class, 'store']);
+                Route::put('/{id}/update', [UserController::class, 'update']);
                 Route::delete('/{id}/delete', [UserController::class, 'destroy']);
             });
             Route::group(['prefix' => 'roles'], function () {

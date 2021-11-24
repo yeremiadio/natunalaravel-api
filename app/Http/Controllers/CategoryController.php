@@ -65,9 +65,7 @@ class CategoryController extends Controller
             'text' => $telegramMessage
         ]);
 
-        $data = [
-            'category' => $category,
-        ];
+        $data = Category::where('category_slug', $category->category_slug)->first();
 
         return $this->responseSuccess('Category created successfully', $data, 201);
     }
@@ -133,7 +131,7 @@ class CategoryController extends Controller
             'text' => $telegramMessage
         ]);
 
-        $data = Category::find($id);
+        $data = Category::where('category_slug', $category->category_slug)->first();
 
         return $this->responseSuccess('Category updated successfully', $data, 200);
     }
@@ -146,7 +144,7 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        $category = Category::where('id' ,$id)->first();
+        $category = Category::where('id', $id)->first();
         if (!$category) return $this->responseFailed('Category not found', '', 404);
 
         $telegramMessage = "Kategori baru berhasil dihapus, nama kategori: {$category->category_name}";
