@@ -30,8 +30,8 @@ class DatabaseSeeder extends Seeder
             'updated_at' => Carbon::now()
         ]);
         DB::table('categories')->insert([
-            'category_name' => 'Kategori 1',
-            'category_slug' => 'kategori-1',
+            'category_name' => 'Keripik',
+            'category_slug' => 'keripik',
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
         //     ->create();
         DB::table('users')->insert([
             'name' => 'admin',
-            'email' => 'admin@xyz.com',
+            'email' => 'bumdesnatuna@gmail.com',
             'role_id' => 1,
             'email_verified_at' => Carbon::now(),
             'remember_token' => Str::Random(50),

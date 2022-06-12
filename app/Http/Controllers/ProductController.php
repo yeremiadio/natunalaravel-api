@@ -46,7 +46,7 @@ class ProductController extends Controller
             'description' => 'required|min:15|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
-            'product_images' => 'nullable|image',
+            'product_images' => 'nullable',
             'category_id' => 'required|exists:categories,id'
         ]);
 
@@ -142,97 +142,97 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function updateAlt(Request $request, $slug)
-    {
-        $product = Product::where('slug', $slug)->with('category')->first();
-        if (!$product) return $this->responseFailed('Data not found', '', 404);
+    // public function updateAlt(Request $request, $slug)
+    // {
+    //     $product = Product::where('slug', $slug)->with('category')->first();
+    //     if (!$product) return $this->responseFailed('Data not found', '', 404);
 
-        $input = $request->all();
-        $validator = Validator::make($input, [
-            'title' => 'required|string',
-            'description' => 'required|min:15|string',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'price' => 'required|numeric',
-            'quantity' => 'required|min:1|numeric',
-            'product_images' => 'required|array|between:1,5',
-            'product_images.*.id' => 'required|numeric',
-            'product_images.*.image_name' => 'nullable|image',
-            'category_id' => 'required|exists:categories,id',
-        ]);
+    //     $input = $request->all();
+    //     $validator = Validator::make($input, [
+    //         'title' => 'required|string',
+    //         'description' => 'required|min:15|string',
+    //         'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    //         'price' => 'required|numeric',
+    //         'quantity' => 'required|min:1|numeric',
+    //         'product_images' => 'required|array|between:1,5',
+    //         'product_images.*.id' => 'required|numeric',
+    //         'product_images.*.image_name' => 'nullable|image',
+    //         'category_id' => 'required|exists:categories,id',
+    //     ]);
 
-        if ($validator->fails()) {
-            return $this->responseFailed('Error Validation', $validator->errors(), 400);
-        }
+    //     if ($validator->fails()) {
+    //         return $this->responseFailed('Error Validation', $validator->errors(), 400);
+    //     }
 
-        try {
-            DB::beginTransaction();
-            $oldFile = $product->thumbnail;
-            if ($request->hasFile('thumbnail')) {
-                File::delete('assets/images/thumbnail/products/' . $oldFile);
-                $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
-                request()->thumbnail->move(public_path('assets/images/thubmnail/products/'), $input['thumbnail']);
-            } else {
-                $input['thumbnail'] = $oldFile;
-            }
-            $product->update([
-                'title' => $input['title'],
-                'description' => $input['description'],
-                'thumbnail' => $input['thumbnail'],
-                'slug' =>  Str::slug($input['title']),
-                'quantity' => $input['quantity'],
-                'category_id' =>  $input['category_id'],
-            ]);
+    //     try {
+    //         DB::beginTransaction();
+    //         $oldFile = $product->thumbnail;
+    //         if ($request->hasFile('thumbnail')) {
+    //             File::delete('assets/images/thumbnail/products/' . $oldFile);
+    //             $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+    //             request()->thumbnail->move(public_path('assets/images/thubmnail/products/'), $input['thumbnail']);
+    //         } else {
+    //             $input['thumbnail'] = $oldFile;
+    //         }
+    //         $product->update([
+    //             'title' => $input['title'],
+    //             'description' => $input['description'],
+    //             'thumbnail' => $input['thumbnail'],
+    //             'slug' =>  Str::slug($input['title']),
+    //             'quantity' => $input['quantity'],
+    //             'category_id' =>  $input['category_id'],
+    //         ]);
 
-            foreach ($input['product_images'] as $key => $imageValues) {
-                if ($imageValues['id'] == -1) {
-                    $imageValues['image_name'] = null;
-                    if ($request->hasFile('product_images.' . $key . '.image_name')) {
-                        $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
+    //         foreach ($input['product_images'] as $key => $imageValues) {
+    //             if ($imageValues['id'] == -1) {
+    //                 $imageValues['image_name'] = null;
+    //                 if ($request->hasFile('product_images.' . $key . '.image_name')) {
+    //                     $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
 
-                        $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
-                    }
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_name' => $imageValues['image_name']
-                    ]);
-                } else {
-                    $oldFile = $product->product_images[$key]->image_name;
-                    if ($request->hasFile('product_images.' . $key . '.image_name')) {
-                        $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
+    //                     $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+    //                 }
+    //                 ProductImage::create([
+    //                     'product_id' => $product->id,
+    //                     'image_name' => $imageValues['image_name']
+    //                 ]);
+    //             } else {
+    //                 $oldFile = $product->product_images[$key]->image_name;
+    //                 if ($request->hasFile('product_images.' . $key . '.image_name')) {
+    //                     $imageValues['image_name'] = rand() . '.' . $request->product_images[$key]['image_name']->getClientOriginalExtension();
 
-                        $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
-                    } else {
-                        $imageValues['image_name'] = $oldFile;
-                    }
+    //                     $request->product_images[$key]['image_name']->move(public_path('assets/images/products/'), $imageValues['image_name']);
+    //                 } else {
+    //                     $imageValues['image_name'] = $oldFile;
+    //                 }
 
-                    ProductImage::where('id', $imageValues['id'])
-                        ->update([
-                            'image_name' => $imageValues['image_name']
-                        ]);
-                }
-            }
+    //                 ProductImage::where('id', $imageValues['id'])
+    //                     ->update([
+    //                         'image_name' => $imageValues['image_name']
+    //                     ]);
+    //             }
+    //         }
 
-            $telegramMessage = "Produk baru berhasil diubah, nama produk: {$input['title']}";
+    //         $telegramMessage = "Produk baru berhasil diubah, nama produk: {$input['title']}";
 
-            $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+    //         $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
 
-            $telegram->sendMessage([
-                'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
-                'text' => $telegramMessage
-            ]);
+    //         $telegram->sendMessage([
+    //             'chat_id' => env('TELEGRAM_CHAT_GROUP_ID_SAMPLE'),
+    //             'text' => $telegramMessage
+    //         ]);
 
-            DB::commit();
+    //         DB::commit();
 
-            $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
-                $q->select('id', 'category_name', 'category_slug');
-            }, 'product_images'])->first();
+    //         $data = Product::where('slug', $product->slug)->with(['category' => function ($q) {
+    //             $q->select('id', 'category_name', 'category_slug');
+    //         }, 'product_images'])->first();
 
-            return $this->responseSuccess('Product updated successfully', $data, 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->responseFailed('Product update failed');
-        }
-    }
+    //         return $this->responseSuccess('Product updated successfully', $data, 200);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return $this->responseFailed('Product update failed');
+    //     }
+    // }
 
     public function update(Request $request, $slug)
     {
