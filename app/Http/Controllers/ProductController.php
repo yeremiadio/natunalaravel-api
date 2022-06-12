@@ -234,9 +234,9 @@ class ProductController extends Controller
     //     }
     // }
 
-    public function update(Request $request, $slug)
+    public function update(Request $request, $id)
     {
-        $product = Product::where('slug', $slug)->first();
+        $product = Product::where('id', $id)->first();
         if (!$product) return $this->responseFailed('Data not found', '', 404);
         $input = $request->all();
         $validator = Validator::make($input, [
@@ -300,7 +300,7 @@ class ProductController extends Controller
         }
 
         ProductImage::find($id)->delete();
-        return $this->responseSuccess('Product image deleted successfully');
+        return $this->responseSuccess('Product image deleted successfully', $images, 200);
     }
     /**
      * Remove the specified resource from storage.
