@@ -58,9 +58,10 @@ class ProductController extends Controller
             DB::beginTransaction();
             $input['thumbnail'] = null;
             if ($request->hasFile('thumbnail')) {
-                $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+                $input['thumbnail'] = cloudinary()->upload($request->file('thumbnail')->getRealPath())->getSecurePath();
+                // $input['thumbnail'] = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
 
-                request()->thumbnail->move(public_path('assets/images/thumbnail/products/'), $input['thumbnail']);
+                // request()->thumbnail->move(public_path('assets/images/thumbnail/products/'), $input['thumbnail']);
             }
 
             $product = Product::create([
@@ -74,8 +75,9 @@ class ProductController extends Controller
 
             if ($request->hasFile('product_images')) {
                 $images = $request->file('product_images');
+
                 foreach ($images as $image) {
-                    $imageName = rand() . '.' . $image->getClientOriginalExtension();
+                    $imageName = cloudinary()->upload($image->getRealPath())->getSecurePath();
                     $request['product_id'] = $product->id;
                     $request['image_name'] = $imageName;
                     $image->move(public_path('assets/images/products/'), $imageName);
@@ -255,10 +257,10 @@ class ProductController extends Controller
             $oldFile = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
                 // File::delete('assets/images/thumbnail/products/' . $oldFile);
-                $thumbnail = $request->file('thumbnail');
-                $thumbnailName = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
-                $input['thumbnail'] = $thumbnailName;
-                $thumbnail->move(public_path('assets/images/thumbnail/products/'), $thumbnailName);
+                $thumbnail = cloudinary()->upload($request->file('thumbnail')->getRealPath())->getSecurePath();
+                // $thumbnailName = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
+                // $input['thumbnail'] = $thumbnailName;
+                // $thumbnail->move(public_path('assets/images/thumbnail/products/'), $thumbnailName);
             } else {
                 $input['thumbnail'] = $oldFile;
             }
@@ -273,7 +275,7 @@ class ProductController extends Controller
             if ($request->hasFile('product_images')) {
                 $images = $request->file('product_images');
                 foreach ($images as $image) {
-                    $imageName = rand() . '.' . $image->getClientOriginalExtension();
+                    $imageName = cloudinary()->upload($image->getRealPath())->getSecurePath();
                     $request['product_id'] = $product->id;
                     $request['image_name'] = $imageName;
                     $image->move(public_path('assets/images/products/'), $imageName);
