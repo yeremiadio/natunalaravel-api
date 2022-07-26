@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
             'role_id' => 1,
             'email_verified_at' => Carbon::now(),
             'remember_token' => Str::Random(50),
-            'password' => Hash::make('password'),
+            'password' => Hash::make('BumdesNatuna123`'),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
