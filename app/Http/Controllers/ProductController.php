@@ -257,7 +257,7 @@ class ProductController extends Controller
             $oldFile = $product->thumbnail;
             if ($request->hasFile('thumbnail')) {
                 // File::delete('assets/images/thumbnail/products/' . $oldFile);
-                $thumbnail = cloudinary()->upload($request->file('thumbnail')->getRealPath())->getSecurePath();
+                $input['thumbnail'] = cloudinary()->upload($request->file('thumbnail')->getRealPath())->getSecurePath();
                 // $thumbnailName = rand() . '.' . request()->thumbnail->getClientOriginalExtension();
                 // $input['thumbnail'] = $thumbnailName;
                 // $thumbnail->move(public_path('assets/images/thumbnail/products/'), $thumbnailName);
