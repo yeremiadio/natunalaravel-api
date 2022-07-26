@@ -46,6 +46,7 @@ class ProductController extends Controller
             'description' => 'required|min:15|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|numeric',
+            'unit' => 'required|string',
             'product_images' => 'nullable',
             'category_id' => 'required|exists:categories,id'
         ]);
@@ -70,6 +71,7 @@ class ProductController extends Controller
                 'thumbnail' => $input['thumbnail'],
                 'slug' =>  Str::slug($input['title']),
                 'price' => $input['price'],
+                'unit' => $input['unit'],
                 'category_id' =>  $input['category_id'],
             ]);
 
@@ -246,6 +248,7 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric',
             'thumbnail' => 'nullable',
+            'unit' => 'required|string',
             'category_id' => 'required|exists:categories,id',
         ]);
 
@@ -271,6 +274,7 @@ class ProductController extends Controller
                 'price' => $input['price'],
                 'slug' =>  Str::slug($input['title']),
                 'category_id' =>  $input['category_id'],
+                'unit' => $input['unit'],
             ]);
             if ($request->hasFile('product_images')) {
                 $images = $request->file('product_images');

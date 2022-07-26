@@ -18,6 +18,7 @@ class CreateProductsTable extends Migration
             $table->foreignId('category_id');
             $table->string('title');
             $table->string('slug');
+            $table->string('unit');
             $table->longText('description');
             $table->integer('price');
             $table->string('thumbnail')->nullable();
