@@ -20,9 +20,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['api' => 'force-json'])->group(function () {
-    Route::group(['prefix' => 'users'], function () {
-        Route::get('/', [UserController::class, 'index']);
-    });
     //register new user
     Route::post('/register', [AuthenticationController::class, 'register']);
     //login user
